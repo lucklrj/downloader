@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"math"
+	"flag"
 )
 
 type httpData struct {
@@ -17,10 +18,29 @@ type httpData struct {
 	Err      error
 }
 
+var (
+	downFile = flag.String("file", "", "要下载的文件地址")
+	target   = flag.String("target", "", "存放位置")
+	thread   = flag.String("thread", "10", "线程数")
+)
+
+func init() {
+	flag.Parse()
+	if *downFile == "" {
+		fmt.Println("缺少文件下载地址")
+		os.Exit(0)
+	}
+	if *target == "" {
+		*target = "./"
+	}
+}
 func main() {
+	
 	firstDataSize := 1024
-	progress := 10
-	url := "http://pic-bucket.nosdn.127.net/photo/0003/2018-08-10/DOR5JCRU00AJ0003NOS.jpg"
+	threadNum, _ := strconv.Atoi(*thread)
+	url := *downFile
+	fileName := url[strings.LastIndex(url, "/")+1:]
+	
 	fileContent := ""
 	fileSize := 0
 	data := down(url, 0, firstDataSize, 0)
@@ -39,14 +59,14 @@ func main() {
 	
 	//分包抓取
 	remainTotal := fileSize - firstDataSize - 1
-	singleRequestSize := math.Floor(float64(remainTotal) / float64(progress))
+	singleRequestSize := math.Floor(float64(remainTotal) / float64(threadNum))
 	
-	c := make([]chan httpData, progress)
+	c := make([]chan httpData, threadNum)
 	
 	startPoint := firstDataSize
 	endPoint := startPoint + int(singleRequestSize)
 	
-	for i := 0; i < progress; i++ {
+	for i := 0; i < threadNum; i++ {
 		c[i] = make(chan httpData)
 		go func(link chan httpData, url string, startPoint int, endPoint int, index int) {
 			line := down(url, startPoint, endPoint, index)
@@ -69,10 +89,17 @@ func main() {
 	}
 	
 	//拼接内容
-	for i := 0; i < progress; i++ {
+	for i := 0; i < threadNum; i++ {
 		fileContent = fileContent + allData[i]
 	}
-	fmt.Println(fileContent)
+	
+	f, err := os.OpenFile(*target+fileName, os.O_RDWR|os.O_CREATE, 0755)
+	defer f.Close()
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		f.WriteString(fileContent)
+	}
 	
 }
 
