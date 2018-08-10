@@ -1,0 +1,4 @@
+package: .
+import:
+- package: github.com/ddliu/go-httpclient
+  version: ^0.5.1

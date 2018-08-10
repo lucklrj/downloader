@@ -1,0 +1,6 @@
+hash: 49d687da7d774c56d0247e237d754d1f3d222b0d2b9ecee71f9b43438311d046
+updated: 2018-08-10T11:21:15.93088+08:00
+imports:
+- name: github.com/ddliu/go-httpclient
+  version: 72917d81d0423a6235790470d15a4d099e3490f9
+testImports: []
