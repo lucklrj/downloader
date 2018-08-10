@@ -9,6 +9,7 @@ import (
 	"strings"
 	"math"
 	"flag"
+	"time"
 )
 
 type httpData struct {
@@ -35,6 +36,7 @@ func init() {
 	}
 }
 func main() {
+	time1 := time.Now().UnixNano()
 	
 	firstDataSize := 1024
 	threadNum, _ := strconv.Atoi(*thread)
@@ -51,6 +53,7 @@ func main() {
 	if _, ok := data.Response.Header["Content-Range"]; ok {
 		contentRange := strings.Split(data.Response.Header["Content-Range"][0], "/")
 		fileSize, _ = strconv.Atoi(contentRange[1])
+		fmt.Printf("文件大小:%0.2fM,", (float64(fileSize) / 1024 / 1024))
 	} else {
 		die("无法获取文件大小")
 	}
@@ -100,6 +103,10 @@ func main() {
 	} else {
 		f.WriteString(fileContent)
 	}
+	time2 := time.Now().UnixNano()
+	
+	diff := (float64(time2) - float64(time1)) / 1e9
+	fmt.Printf("耗时：%0.2f秒", diff)
 	
 }
 
@@ -111,7 +118,6 @@ func down(url string, startPoint int, endPoint int, index int) httpData {
 	
 	bodyBytes, err := res.ReadAll()
 	return httpData{Index: index, Body: string(bodyBytes), Response: res.Response, Err: err}
-	
 }
 
 func die(msg string) {
