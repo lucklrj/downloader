@@ -3,39 +3,35 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/ddliu/go-httpclient"
 	"io/ioutil"
-	"net/http"
 )
 
 func main() {
 	url := "http://127.0.0.1:8088/api/upload"
 	
 	byte, _ := ioutil.ReadFile("1.txt")
+	headers := make(map[string]string)
 	
-	req, _ := http.NewRequest("POST", url, bytes.NewReader(byte[0:18]))
-	req.Header.Add("Host", "127.0.0.1:8088")
-	req.Header.Add("Content-Length", "18")
-	req.Header.Add("Content-Disposition", "attachment; filename=\"1111.txt\"")
-	req.Header.Add("X-Content-Range", "bytes 0-17/51")
-	req.Header.Add("Session-ID", "lucklrj")
-	req.Header.Add("Content-Type", "application/octet-stream")
+	headers["Host"] = "127.0.0.1:8088"
+	headers["Content-Length"] = "18"
+	headers["X-Content-Range"] = "bytes 0-17/51"
+	headers["Content-Disposition"] = "attachment; filename=\"1111.txt\""
+	headers["Session-ID"] = "lucklrj"
+	headers["Content-Type"] = "application/octet-stream"
 	
-	client := &http.Client{}
-	rep, _ := client.Do(req)
+	rep, _ := httpclient.Do("POST", url, headers, bytes.NewReader(byte[0:18]))
 	fmt.Println(rep.StatusCode)
 	r, _ := ioutil.ReadAll(rep.Body)
 	fmt.Println(string(r))
 	
-	req, _ = http.NewRequest("POST", url, bytes.NewReader(byte[18:]))
-	req.Header.Add("Host", "127.0.0.1:8088")
-	req.Header.Add("Content-Length", "33")
-	req.Header.Add("Content-Disposition", "attachment; filename=\"1111.txt\"")
-	req.Header.Add("X-Content-Range", "bytes 18-50/51")
-	req.Header.Add("Session-ID", "lucklrj")
-	req.Header.Add("Content-Type", "application/octet-stream")
+	//////////
+	headers["Content-Length"] = "31"
+	headers["X-Content-Range"] = "bytes 18-50/51"
 	
-	rep, _ = client.Do(req)
+	rep, _ = httpclient.Do("POST", url, headers, bytes.NewReader(byte[18:]))
 	fmt.Println(rep.StatusCode)
 	r, _ = ioutil.ReadAll(rep.Body)
 	fmt.Println(string(r))
+	
 }
